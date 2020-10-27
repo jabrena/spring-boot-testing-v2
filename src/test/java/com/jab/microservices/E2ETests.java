@@ -18,7 +18,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-public class EndpointTests {
+public class E2ETests {
 
     @LocalServerPort
     private int port;

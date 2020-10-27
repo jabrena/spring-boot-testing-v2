@@ -11,7 +11,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-class EndpointUnitTest {
+class EndpointUnitTests {
 
     @Mock
     private Service service;
