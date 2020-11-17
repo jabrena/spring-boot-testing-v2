@@ -14,10 +14,14 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableList;
 
 @Slf4j
 @Component
@@ -89,12 +93,40 @@ public class ServiceImpl implements Service {
                 .apply(host.getAddress());
     };
 
-
     @Override
     public BigDecimal rate(String from, String to) {
 
         return providerConfiguration.getHosts().stream()
             .map(convert)
+            .sorted((i1, i2) -> i1.compareTo(i2))
+            .collect(toList())
+            .get(0);
+    }
+
+    Function<GlobalConfiguration.Host, CompletableFuture<BigDecimal>> convertAsync = host -> {
+
+        return new CompletableFuture<>()
+            .supplyAsync(() -> convert.apply(host))
+            .orTimeout(60, TimeUnit.SECONDS)
+            .handle((response, ex) -> {
+                if (!Objects.isNull(ex)) {
+                    LOGGER.error(ex.getLocalizedMessage(), ex);
+                }
+                return response;
+            });
+    };
+
+    @Override
+    public BigDecimal rateAsync(String from, String to) {
+
+        var futureRequests = providerConfiguration.getHosts().stream()
+            .map(convertAsync)
+            .collect(toUnmodifiableList());
+
+        return futureRequests.stream()
+            .map(CompletableFuture::join)
+            .collect(toList())
+            .stream()
             .sorted((i1, i2) -> i1.compareTo(i2))
             .collect(toList())
             .get(0);

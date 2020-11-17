@@ -14,13 +14,26 @@ public class Endpoint {
     @Autowired
     Service service;
 
+    private String calculate(String amount, BigDecimal rate) {
+
+        BigDecimal finalAmount = new BigDecimal(amount);
+        return finalAmount.multiply(rate).setScale(2).toString();
+    }
+
     @GetMapping("/convert/eur/usd/{amount}")
     public @ResponseBody String convert(@PathVariable("amount") String amount) {
 
-        BigDecimal finalAmount = new BigDecimal(amount);
         BigDecimal rate = service.rate("eur", "usd");
 
-        return finalAmount.multiply(rate).setScale(2).toString();
+        return calculate(amount, rate);
+    }
+
+    @GetMapping("/convertasync/eur/usd/{amount}")
+    public @ResponseBody String convertAsync(@PathVariable("amount") String amount) {
+
+        BigDecimal rate = service.rateAsync("eur", "usd");
+
+        return calculate(amount, rate);
     }
 
 }

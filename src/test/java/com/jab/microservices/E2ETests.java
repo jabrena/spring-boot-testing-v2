@@ -7,6 +7,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,7 +25,7 @@ public class E2ETests {
     private int port;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private TestRestTemplate restTemplateTest;
 
     WireMockServer wireMockServer;
 
@@ -41,11 +42,14 @@ public class E2ETests {
 
     private void loadStubs() {
 
+        final int delay = 500;
+
         //frankfurter
 
         wireMockServer.stubFor(get(urlEqualTo("/frankfurter/latest"))
             .willReturn(aResponse().withHeader("Content-Type", "application/json")
                 .withStatus(200)
+                .withFixedDelay(delay)
                 .withBodyFile("providers/frankfurter.json")));
 
         //ratesapi
@@ -53,6 +57,7 @@ public class E2ETests {
         wireMockServer.stubFor(get(urlEqualTo("/ratesapi/latest"))
             .willReturn(aResponse().withHeader("Content-Type", "application/json")
                 .withStatus(200)
+                .withFixedDelay(delay)
                 .withBodyFile("providers/ratesapi.json")));
 
         //exchangeratesapi
@@ -60,18 +65,41 @@ public class E2ETests {
         wireMockServer.stubFor(get(urlEqualTo("/exchangeratesapi/latest"))
             .willReturn(aResponse().withHeader("Content-Type", "application/json")
                 .withStatus(200)
+                .withFixedDelay(delay)
                 .withBodyFile("providers/exchangeratesapi.json")));
     }
 
-    @Test
+    final int times = 5;
+
+    @RepeatedTest(times)
+   //@Test
     public void given_controller_when_call_endpoint_then_ok() {
 
+        //Given
         loadStubs();
 
+        //When
         var resource = "/convert/eur/usd/100";
         var address = String.format("%s%s%s", "http://localhost:", port, resource);
-        var result = restTemplate.getForObject(address, String.class);
+        var result = restTemplateTest.getForObject(address, String.class);
 
+        //Then
+        then(result).isEqualTo("118.19");
+    }
+
+    @RepeatedTest(times)
+    //@Test
+    public void given_controller_when_call_endpointAsync_then_ok() {
+
+        //Given
+        loadStubs();
+
+        //When
+        var resource = "/convertasync/eur/usd/100";
+        var address = String.format("%s%s%s", "http://localhost:", port, resource);
+        var result = restTemplateTest.getForObject(address, String.class);
+
+        //Then
         then(result).isEqualTo("118.19");
     }
 

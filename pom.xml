@@ -19,6 +19,8 @@
 
         <vavr.version>0.10.2</vavr.version>
 
+        <jmh.version>1.21</jmh.version>
+
         <wiremock.version>2.24.1</wiremock.version>
         <rest-assured.version>4.0.0</rest-assured.version>
 	</properties>
@@ -53,6 +55,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>${jmh.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>${jmh.version}</version>
+            <scope>test</scope>
         </dependency>
 
 		<dependency>
